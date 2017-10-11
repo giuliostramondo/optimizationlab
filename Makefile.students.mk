@@ -1,6 +1,6 @@
-CFLAGS_seq		:= -O1 -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
-CFLAGS_simd		:= -O1 -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
-CFLAGS_thread	:= -O1 -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
+CFLAGS_seq		:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
+CFLAGS_simd		:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
+CFLAGS_thread	:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
 
 
 k_nearest_seq: k_nearest_seq.c simpletimer.c parse.c 

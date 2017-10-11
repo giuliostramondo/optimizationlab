@@ -7,6 +7,9 @@
 #include "parse.h"
 #include "vec.h"
 
+#include <smmintrin.h>
+#include <emmintrin.h>
+
 /* Number of bytes in a vector */
 #define VBYTES 32
 
@@ -52,6 +55,32 @@ data_t manhattan_distance(data_t *x, data_t *y, int length){
         distance+=abs_diff(x[i],y[i]);
     }
     return distance;
+}
+
+inline __m128d abs_pd(__m128d x) {
+             __m128d sign_mask = _mm_set1_pd(-0.); // -0. = 1 << 63
+            return _mm_andnot_pd(sign_mask, x); // !sign_mask & x
+}
+data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
+    int i =0;
+    __m128d vx,vy,sub,abs_diff;
+    __m128d distance=_mm_set_pd(0.0,0.0);
+    __m128d zero= _mm_set_pd(0.0,0.0);
+    for(i=0;i<length;i+=2){
+         vx = _mm_load_pd(x+i);
+         //__mm_dump_pd("vx",vx);
+         vy = _mm_load_pd(y+i);
+         //__mm_dump_pd("vy",vy);
+         sub = _mm_sub_pd(vx,vy);
+         //__mm_dump_pd("sub",sub);
+         abs_diff= abs_pd(sub);
+         //__mm_dump_pd("abs_diff",abs_diff);
+         distance=_mm_add_pd(distance,abs_diff);
+         //__mm_dump_pd("distance",distance);
+    }
+    distance = _mm_hadd_pd(distance,zero);
+    //__mm_dump_pd("distance hadd",distance);
+    return _mm_cvtsd_f64(distance);
 }
 
 data_t simd_manhattan_distance(data_t *x, data_t *y, int length){
@@ -158,7 +187,8 @@ data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
         min_distance = simd_manhattan_distance(features[lookFor],features[0],FEATURE_LENGTH);
     	result[0] = min_distance;
         for(i=1;i<ROWS-1;i++){
-                current_distance = simd_manhattan_distance(features[lookFor],features[i],FEATURE_LENGTH);
+                current_distance =simd_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
+                //current_distance = simd_manhattan_distance(features[lookFor],features[i],FEATURE_LENGTH);
                 result[i]=current_distance;
                 if(current_distance<min_distance){
                         min_distance=current_distance;
@@ -268,7 +298,7 @@ data_t *opt_classify_CS(unsigned int lookFor, unsigned int *found) {
 	}
     //TO HERE
     timer_opt_CS = timer_end(stv);
-    printf("Calculation using oprimized CS took: %10.6f \n", timer_opt_CS);
+    printf("Calculation using optimized CS took: %10.6f \n", timer_opt_CS);
     *found = closest_point;
     return result;
 }

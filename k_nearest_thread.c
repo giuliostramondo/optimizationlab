@@ -256,7 +256,7 @@ data_t *opt_classify_CS(unsigned int lookFor, unsigned int *found) {
 	}
     //TO HERE
     timer_opt_CS = timer_end(stv);
-    printf("Calculation using oprimized CS took: %10.6f \n", timer_opt_CS);
+    printf("Calculation using optimized CS took: %10.6f \n", timer_opt_CS);
     *found = closest_point;
     return result;
 }
