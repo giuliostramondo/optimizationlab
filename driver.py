@@ -5,7 +5,9 @@ REPEAT_MEASURE_NB=10
 # IF YOU ARE RUNNING ON THE DAS 4 set ON_DAS4 to True
 # IF YOU ARE LOCALLY set ON_DAS4 to False
 # Your code will be tested on the DAS4.
-ON_DAS4=True
+
+
+ON_DAS4=False
 
 benchmark_list_das4=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
         {"id":"optimized sequential","filename":"prun -np 1 ./k_nearest_seq","is_reference":False,"benchmark_results":[]},\
