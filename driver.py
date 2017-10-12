@@ -1,12 +1,21 @@
-#!/home/gstramon/miniconda3/bin/python
+import sys
 from subprocess import Popen, PIPE
 REPEAT_MEASURE_NB=10
 
-benchmark_list=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
+# IF YOU ARE RUNNING ON THE DAS 4 set ON_DAS4 to True
+# IF YOU ARE LOCALLY set ON_DAS4 to False
+# Your code will be tested on the DAS4.
+ON_DAS4=True
+
+benchmark_list_das4=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
         {"id":"optimized sequential","filename":"prun -np 1 ./k_nearest_seq","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized SIMD","filename":"prun -np 1 ./k_nearest_simd","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized multi thread","filename":"prun -np 1 ./k_nearest_thread","is_reference":False,"benchmark_results":[]}]
 
+benchmark_list_local=[{"id":"reference","filename":"./k_nearest","is_reference":True,"benchmark_results":[]},\
+        {"id":"optimized sequential","filename":"./k_nearest_seq","is_reference":False,"benchmark_results":[]},\
+        {"id":"optimized SIMD","filename":"./k_nearest_simd","is_reference":False,"benchmark_results":[]},\
+        {"id":"optimized multi thread","filename":"./k_nearest_thread","is_reference":False,"benchmark_results":[]}]
 
 def check_prun_loaded():
     ps=Popen(["prun 2>&1 "], shell=True ,stdout=PIPE)
@@ -71,9 +80,9 @@ def benchmark_bin(filename,is_reference):
         print("Problems benchmarking CS in "+filename)
 
 
-    avg_MD=sum_MD/REPEAT_MEASURE_NB    
-    avg_ED=sum_ED/REPEAT_MEASURE_NB    
-    avg_CS=sum_CS/REPEAT_MEASURE_NB    
+    avg_MD=sum_MD/REPEAT_MEASURE_NB
+    avg_ED=sum_ED/REPEAT_MEASURE_NB
+    avg_CS=sum_CS/REPEAT_MEASURE_NB
     res={"min_MD":min_MD,"avg_MD":avg_MD,"max_MD":max_MD,"min_ED":min_ED,"avg_ED":avg_ED,"max_ED":max_ED,"min_CS":min_CS,"avg_CS":avg_CS,"max_CS":max_CS}
     return res
 
@@ -81,7 +90,7 @@ def benchmark_bin(filename,is_reference):
 def print_table(benchmark_list):
     reference=""
     column_lenght={}
-    total_lenght=0 
+    total_lenght=0
     order=["id","min_MD","avg_MD","max_MD","min_ED","avg_ED","max_ED","min_CS","avg_CS","max_CS","Speedup MD","Speedup ED","Speedup CS"]
 
     for benchmark in benchmark_list:
@@ -106,14 +115,14 @@ def print_table(benchmark_list):
         else:
             if column_lenght["id"]<len(benchmark["id"]):
                 column_lenght["id"]=len(benchmark["id"])
-                
+
     for key,value in column_lenght.items():
         #print(value)
         total_lenght+=value
     total_lenght+=len(column_lenght)*3
     line =""
-    #print(str(column_lenght)) 
-    #print(str(reference)) 
+    #print(str(column_lenght))
+    #print(str(reference))
     line+="_"*total_lenght
     print(line)
     header=""
@@ -183,19 +192,23 @@ def dump_benchmark_info(benchmark,reference=None):
 
 
 if __name__=="__main__":
-    if check_prun_loaded():
-
-        reference="" 
-        for benchmark in benchmark_list:
-            print("benchmarking "+benchmark["id"]+" code")
-            benchmark["benchmark_results"] = benchmark_bin(benchmark["filename"],benchmark["is_reference"])
-            if benchmark["is_reference"]:
-                reference=benchmark
-        
-        #dump_benchmark_info(reference)
-        #for benchmark in benchmark_list:
-        #    dump_benchmark_info(benchmark,reference=reference)
-        
-        print_table(benchmark_list)
+    if ON_DAS4:
+        benchmark_list=benchmark_list_das4
+        if not check_prun_loaded():
+            print("prun module is not loaded\nPlease load:\nmodule load prun")
+            sys.exit()
     else:
-        print("prun module is not loaded\nPlease load:\nmodule load prun")
+        benchmark_list=benchmark_list_local
+
+    reference=""
+    for benchmark in benchmark_list:
+        print("benchmarking "+benchmark["id"]+" code")
+        benchmark["benchmark_results"] = benchmark_bin(benchmark["filename"],benchmark["is_reference"])
+        if benchmark["is_reference"]:
+            reference=benchmark
+
+    #dump_benchmark_info(reference)
+    #for benchmark in benchmark_list:
+    #    dump_benchmark_info(benchmark,reference=reference)
+
+    print_table(benchmark_list)
