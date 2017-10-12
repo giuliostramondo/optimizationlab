@@ -1,11 +1,20 @@
 #!/home/gstramon/miniconda3/bin/python
 from subprocess import Popen, PIPE
-REPEAT_MEASURE_NB=1
+REPEAT_MEASURE_NB=10
 
 benchmark_list=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
         {"id":"optimized sequential","filename":"prun -np 1 ./k_nearest_seq","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized SIMD","filename":"prun -np 1 ./k_nearest_simd","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized multi thread","filename":"prun -np 1 ./k_nearest_thread","is_reference":False,"benchmark_results":[]}]
+
+
+def check_prun_loaded():
+    ps=Popen(["prun 2>&1 "], shell=True ,stdout=PIPE)
+    string = ps.stdout.readline()
+    if string == b'/bin/sh: prun: command not found\n':
+        return 0
+    else:
+        return 1
 
 def benchmark_bin(filename,is_reference):
     sum_MD=0
@@ -174,16 +183,19 @@ def dump_benchmark_info(benchmark,reference=None):
 
 
 if __name__=="__main__":
-    reference="" 
-    for benchmark in benchmark_list:
-        print("benchmarking "+benchmark["id"]+" code")
-        benchmark["benchmark_results"] = benchmark_bin(benchmark["filename"],benchmark["is_reference"])
-        if benchmark["is_reference"]:
-            reference=benchmark
-    
-    #dump_benchmark_info(reference)
-    #for benchmark in benchmark_list:
-    #    dump_benchmark_info(benchmark,reference=reference)
-    
-    print_table(benchmark_list)
-    
+    if check_prun_loaded():
+
+        reference="" 
+        for benchmark in benchmark_list:
+            print("benchmarking "+benchmark["id"]+" code")
+            benchmark["benchmark_results"] = benchmark_bin(benchmark["filename"],benchmark["is_reference"])
+            if benchmark["is_reference"]:
+                reference=benchmark
+        
+        #dump_benchmark_info(reference)
+        #for benchmark in benchmark_list:
+        #    dump_benchmark_info(benchmark,reference=reference)
+        
+        print_table(benchmark_list)
+    else:
+        print("prun module is not loaded\nPlease load:\nmodule load prun")
