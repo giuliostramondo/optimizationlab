@@ -63,6 +63,7 @@ inline __m128d abs_pd(__m128d x) {
 }
 data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
     int i =0;
+    data_t result=0;
     __m128d vx,vy,sub,abs_diff;
     __m128d distance=_mm_set_pd(0.0,0.0);
     __m128d zero= _mm_set_pd(0.0,0.0);
@@ -80,7 +81,12 @@ data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
     }
     distance = _mm_hadd_pd(distance,zero);
     //__mm_dump_pd("distance hadd",distance);
-    return _mm_cvtsd_f64(distance);
+    result = _mm_cvtsd_f64(distance);
+    while (i < length) {
+        result += fabs(*(x+i) - *(y+i));
+        i++;
+    }
+	return result;
 }
 
 data_t simd_manhattan_distance(data_t *x, data_t *y, int length){
@@ -184,7 +190,7 @@ data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
     data_t min_distance,current_distance;
 
         timer_start(&stv);
-        min_distance = simd_manhattan_distance(features[lookFor],features[0],FEATURE_LENGTH);
+        min_distance = simd_manhattan_distance_intr(features[lookFor],features[0],FEATURE_LENGTH);
     	result[0] = min_distance;
         for(i=1;i<ROWS-1;i++){
                 current_distance =simd_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
