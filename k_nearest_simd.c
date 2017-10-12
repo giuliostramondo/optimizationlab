@@ -11,10 +11,14 @@
 #include <emmintrin.h>
 
 /* Number of bytes in a vector */
-#define VBYTES 32
+/* Check the extensios of your machine to decide! 
+ * E.g. SSE4 = 128 bits, AVX = 256 bits*/
+
+#define VBYTES 16    // DAS4 = SSE4.2 = 128 bits 
 
 /* Number of elements in a vector */
 #define VSIZE VBYTES/sizeof(data_t)
+
 
 /* Vector data type */
 typedef data_t vec_t __attribute__ ((vector_size(VBYTES)));
@@ -67,7 +71,7 @@ data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
     __m128d vx,vy,sub,abs_diff;
     __m128d distance=_mm_set_pd(0.0,0.0);
     __m128d zero= _mm_set_pd(0.0,0.0);
-    for(i=0;i<length;i+=2){
+    for(i=0;i<length;i+=VSIZE){
          vx = _mm_load_pd(x+i);
          //__mm_dump_pd("vx",vx);
          vy = _mm_load_pd(y+i);
