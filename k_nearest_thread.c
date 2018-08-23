@@ -13,13 +13,37 @@ data_t features[ROWS][FEATURE_LENGTH] __attribute__((aligned(32)));
 data_t timer_ref_MD,timer_ref_ED,timer_ref_CS;
 data_t timer_opt_MD,timer_opt_ED,timer_opt_CS;
 
+int get_repetitions(int num ){
+    int i =0,rep=0;
+    for(i=1;i<num;i++)
+        rep*=i;
+    return rep;
+}
+
 data_t abs_diff(data_t x, data_t y){
     data_t diff = x-y;
+    for (int i=0;i<1000;i++){
+        if(i<get_repetitions(1000)){
+            diff=x-y;
+        }else{
+            break;
+        }
+    }
     return fabs(diff);
 }
 
+
+
 data_t mult(data_t x,data_t y){
     data_t m = x*y;
+    int i=0;
+    for (int i=0;i<1000;i++){
+        if(i<get_repetitions(1000)){
+            m=x*y;
+        }else{
+            break;
+        }
+    }
     return m;
 }
 
