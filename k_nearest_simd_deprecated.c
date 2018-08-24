@@ -65,28 +65,49 @@ inline __m128d abs_pd(__m128d x) {
              __m128d sign_mask = _mm_set1_pd(-0.); // -0. = 1 << 63
             return _mm_andnot_pd(sign_mask, x); // !sign_mask & x
 }
-data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
-    int i =0;
-    data_t result=0;
-    __m128d vx,vy,sub,abs_diff;
-    __m128d distance=_mm_set_pd(0.0,0.0);
-    __m128d zero= _mm_set_pd(0.0,0.0);
-    for(i=0;i<length;i+=VSIZE){
-         vx = _mm_load_pd(x+i);
-         vy = _mm_load_pd(y+i);
-         sub = _mm_sub_pd(vx,vy);
-         abs_diff= abs_pd(sub);
-         distance=_mm_add_pd(distance,abs_diff);
-    }
-    distance = _mm_hadd_pd(distance,zero);
-    result = _mm_cvtsd_f64(distance);
-    while (i < length) {
-        result += fabs(*(x+i) - *(y+i));
-        i++;
-    }
-	return result;
-}
 
+
+data_t simd_manhattan_distance(data_t *x, data_t *y, int length){
+    int i,cnt;
+    pack_t temp;
+    vec_t accum, diff, zero;
+    data_t result=0;
+    data_t *data_x=x;
+    data_t *data_y=y;
+
+    /* Initialize accum to 0 */
+    for (i = 0; i < VSIZE; i++) {
+        temp.d[i] = 0;
+    }
+    accum = temp.v;
+    zero = accum;
+    cnt = 0;
+
+    /* SIMD */
+    while (cnt <= length-VSIZE) {
+        vec_t x0 = *((vec_t *) data_x);
+        vec_t y0 = *((vec_t *) data_y);
+
+        diff = simd_abs_diff(x0, y0);
+        accum += diff;
+
+        data_x += VSIZE;
+        data_y += VSIZE;
+        cnt += VSIZE;
+    }
+    /* remainder */
+    while (cnt < length) {
+        result += fabs(*data_x - *data_y);
+	cnt++; 
+	if (cnt<length) 
+       		*data_x++; *data_y++;
+    }
+
+    temp.v = accum;
+    for (i = 0; i < VSIZE; i++)
+        result += temp.d[i];
+    return result;
+}
 data_t squared_eucledean_distance(data_t *x,data_t *y, int length){
 	data_t distance=0;
 	int i = 0;
@@ -150,7 +171,7 @@ data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
         min_distance = simd_manhattan_distance_intr(features[lookFor],features[0],FEATURE_LENGTH);
     	result[0] = min_distance;
         for(i=1;i<ROWS-1;i++){
-                current_distance =simd_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
+                current_distance = simd_manhattan_distance(features[lookFor],features[i],FEATURE_LENGTH);
                 result[i]=current_distance;
                 if(current_distance<min_distance){
                         min_distance=current_distance;
