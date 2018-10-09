@@ -1,3 +1,4 @@
+#!/bin/python
 import sys
 from subprocess import Popen, PIPE
 REPEAT_MEASURE_NB=10

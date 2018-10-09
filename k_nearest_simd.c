@@ -84,6 +84,7 @@ data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
          sub = _mm_sub_pd(vx,vy);
          abs_diff= abs_pd(sub);
          distance=_mm_add_pd(distance,abs_diff);
+
     }
     distance = _mm_hadd_pd(distance,zero);
     result = _mm_cvtsd_f64(distance);
@@ -108,7 +109,9 @@ data_t simd_avx2_manhattan_distance_intr(data_t *x, data_t *y, int length){
          distance=_mm256_add_pd(distance,abs_diff);
     }
     distance = _mm256_hadd_pd(distance,zero);
-    result = _mm256_cvtsd_f64(distance);
+    double *v_distance = (double*) &distance;
+    result = v_distance[0]+v_distance[2];
+     
     while (i < length) {
         result += fabs(*(x+i) - *(y+i));
         i++;
@@ -176,10 +179,12 @@ data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
     data_t min_distance,current_distance;
 
         timer_start(&stv);
-        min_distance = simd_manhattan_distance_intr(features[lookFor],features[0],FEATURE_LENGTH);
+        //min_distance = simd_manhattan_distance_intr(features[lookFor],features[0],FEATURE_LENGTH);
+        min_distance = simd_avx2_manhattan_distance_intr(features[lookFor],features[0],FEATURE_LENGTH);
     	result[0] = min_distance;
         for(i=1;i<ROWS-1;i++){
-                current_distance =simd_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
+                //current_distance =simd_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
+                current_distance =simd_avx2_manhattan_distance_intr(features[lookFor],features[i],FEATURE_LENGTH);
                 result[i]=current_distance;
                 if(current_distance<min_distance){
                         min_distance=current_distance;
