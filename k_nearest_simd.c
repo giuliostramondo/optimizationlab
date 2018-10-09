@@ -9,9 +9,9 @@
 
 #include <smmintrin.h>
 #include <emmintrin.h>
-
+#include <immintrin.h>
 /* Number of bytes in a vector */
-/* Check the extensios of your machine to decide! 
+/* Check the extensions of your machine to decide! 
  * E.g. SSE4 = 128 bits, AVX = 256 bits*/
 
 #define VBYTES 16    // DAS4 = SSE4.2 = 128 bits 
@@ -65,6 +65,13 @@ inline __m128d abs_pd(__m128d x) {
              __m128d sign_mask = _mm_set1_pd(-0.); // -0. = 1 << 63
             return _mm_andnot_pd(sign_mask, x); // !sign_mask & x
 }
+
+inline __m256d abs256_pd(__m256d x) {
+            __m256d sign_mask = _mm256_set1_pd(-0.);
+            return _mm256_andnot_pd(sign_mask,x);
+}
+
+
 data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
     int i =0;
     data_t result=0;
@@ -80,6 +87,28 @@ data_t simd_manhattan_distance_intr(data_t *x, data_t *y, int length){
     }
     distance = _mm_hadd_pd(distance,zero);
     result = _mm_cvtsd_f64(distance);
+    while (i < length) {
+        result += fabs(*(x+i) - *(y+i));
+        i++;
+    }
+	return result;
+}
+
+data_t simd_avx2_manhattan_distance_intr(data_t *x, data_t *y, int length){
+    int i=0;
+    data_t result=0;
+    __m256d vx,vy,sub,abs_diff;
+    __m256d distance=_mm256_set_pd(0.0,0.0,0.0,0.0);
+    __m256d zero= _mm256_set_pd(0.0,0.0,0.0,0.0);
+    for(i=0;i<length;i+=4){
+         vx = _mm256_load_pd(x+i);
+         vy = _mm256_load_pd(y+i);
+         sub = _mm256_sub_pd(vx,vy);
+         abs_diff= abs256_pd(sub);
+         distance=_mm256_add_pd(distance,abs_diff);
+    }
+    distance = _mm256_hadd_pd(distance,zero);
+    result = _mm256_cvtsd_f64(distance);
     while (i < length) {
         result += fabs(*(x+i) - *(y+i));
         i++;
