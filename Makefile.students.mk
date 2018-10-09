@@ -1,5 +1,5 @@
 CFLAGS_seq		:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
-CFLAGS_simd		:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize -mavx2
+CFLAGS_simd		:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize -mavx
 CFLAGS_thread	:= -O1 -w -fno-inline-functions -fno-early-inlining -fno-inline-small-functions -fno-tree-loop-optimize
 
 
