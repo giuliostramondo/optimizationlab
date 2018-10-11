@@ -105,6 +105,7 @@ void *thread_manhattan_distance(void *arg)
    return (NULL);
 }
 
+//NO NEED to modify this function!
 data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
     data_t *result =(data_t*)malloc(sizeof(data_t)*(ROWS-1));
     struct timeval stv, etv;

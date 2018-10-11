@@ -82,7 +82,7 @@ data_t *ref_classify_MD(unsigned int lookFor, unsigned int *found) {
     return result;
 }
 
-//Modify this function
+//NO NEED to modify this function!
 data_t *opt_classify_MD(unsigned int lookFor, unsigned int *found) {
     data_t *result =(data_t*)malloc(sizeof(data_t)*(ROWS-1));
     struct timeval stv, etv;

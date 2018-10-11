@@ -3,14 +3,14 @@ import sys
 from subprocess import Popen, PIPE
 REPEAT_MEASURE_NB=10
 
-# IF YOU ARE RUNNING ON THE DAS 4 set ON_DAS4 to True
-# IF YOU ARE LOCALLY set ON_DAS4 to False
-# Your code will be tested on the DAS4.
+# IF YOU ARE RUNNING ON THE DAS 5 set ON_DAS5 to True
+# IF YOU ARE LOCALLY set ON_DAS5 to False
+# Your code will be tested on the DAS5.
 
 
-ON_DAS4=False
+ON_DAS5=False
 
-benchmark_list_das4=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
+benchmark_list_das5=[{"id":"reference","filename":"prun -np 1 ./k_nearest","is_reference":True,"benchmark_results":[]},\
         {"id":"optimized sequential","filename":"prun -np 1 ./k_nearest_seq","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized SIMD","filename":"prun -np 1 ./k_nearest_simd","is_reference":False,"benchmark_results":[]},\
         {"id":"optimized multi thread","filename":"prun -np 1 ./k_nearest_thread","is_reference":False,"benchmark_results":[]}]
@@ -109,15 +109,21 @@ def print_table(benchmark_list):
         #print(str(benchmark["benchmark_results"]))
         for key,value in benchmark["benchmark_results"].items():
             if not key in column_lenght:
-                column_lenght[key]=len(str(value))
+                value_str = "{0:.2f}".format(value)
+                column_lenght[key]=len(value_str)
             else:
-                if column_lenght[key]<len(str(value)):
-                    column_lenght[key]=len(str(value))
+                value_str = "{0:.2f}".format(value)
+                if column_lenght[key]<len(value_str):
+                    column_lenght[key]=len(value_str)
         if not "id" in column_lenght:
             column_lenght["id"]=len(benchmark["id"])
         else:
             if column_lenght["id"]<len(benchmark["id"]):
                 column_lenght["id"]=len(benchmark["id"])
+
+    for key in order:
+        if column_lenght[key] < len(key):
+            column_lenght[key]=len(key)
 
     for key,value in column_lenght.items():
         #print(value)
@@ -142,9 +148,9 @@ def print_table(benchmark_list):
     row+=" | "
     for key in order:
         if not key == "id":
-            value = reference["benchmark_results"][key]
+            value = "{0:.2f}".format(reference["benchmark_results"][key])
             tot_len=column_lenght[key]
-            row+=str(value)+" "*(tot_len-len(str(value)))
+            row+=value+" "*(tot_len-len(value))
             row+=" | "
     print(row)
     print(line)
@@ -158,7 +164,7 @@ def print_table(benchmark_list):
         row+=" | "
         for key in order:
             if not key == "id":
-                value = benchmark["benchmark_results"][key]
+                value = "{0:.2f}".format(reference["benchmark_results"][key])
                 tot_len=column_lenght[key]
                 row+=str(value)+" "*(tot_len-len(str(value)))
                 row+=" | "
@@ -195,8 +201,8 @@ def dump_benchmark_info(benchmark,reference=None):
 
 
 if __name__=="__main__":
-    if ON_DAS4:
-        benchmark_list=benchmark_list_das4
+    if ON_DAS5:
+        benchmark_list=benchmark_list_das5
         if not check_prun_loaded():
             print("prun module is not loaded\nPlease load:\nmodule load prun")
             sys.exit()
