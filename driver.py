@@ -164,7 +164,7 @@ def print_table(benchmark_list):
         row+=" | "
         for key in order:
             if not key == "id":
-                value = "{0:.2f}".format(reference["benchmark_results"][key])
+                value = "{0:.2f}".format(benchmark["benchmark_results"][key])
                 tot_len=column_lenght[key]
                 row+=str(value)+" "*(tot_len-len(str(value)))
                 row+=" | "
